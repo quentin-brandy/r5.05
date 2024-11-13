@@ -1,17 +1,45 @@
 'use client';
- 
+
 import { Button } from '@/app/ui/button';
-import { useActionState } from 'react';
+import { useState } from 'react';
 import { authenticate } from '@/app/lib/action';
- 
+
 export default function LoginForm() {
-  const [errorMessage, formAction, isPending] = useActionState(
-    authenticate,
-    undefined,
-  );
- 
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isPending, setIsPending] = useState(false);
+
+  const formAction = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault(); // Empêche le rechargement de la page
+
+    setIsPending(true);
+    const formData = new FormData(event.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
+    try {
+      // Appeler une API route côté serveur pour l'authentification
+      const response = await fetch('/api/auth/authenticate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log('Authenticated:', data);
+        // Logique après authentification réussie
+      } else {
+        console.log(data.message || 'Unknown error');
+      }
+    } catch (error) {
+      console.log('An error occurred during login');
+    }
+  };
+
+
   return (
-    <form action={formAction} className="space-y-3">
+    <form onSubmit={formAction} className="space-y-3">
       <div className="flex-1 rounded-lg bg-gray-50 px-6 pb-4 pt-8">
         <h1 className={` mb-3 text-2xl`}>
           Please log in to continue.
@@ -33,7 +61,6 @@ export default function LoginForm() {
                 placeholder="Enter your email address"
                 required
               />
-              {/* <AtSymbolIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" /> */}
             </div>
           </div>
           <div className="mt-4">
@@ -53,7 +80,6 @@ export default function LoginForm() {
                 required
                 minLength={6}
               />
-              {/* <KeyIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" /> */}
             </div>
           </div>
         </div>

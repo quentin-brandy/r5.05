@@ -7,9 +7,13 @@ import { AuthError } from 'next-auth';
  
 export async function authenticate(
   prevState: string | undefined,
-  formData: FormData,
+  email: string,
+  password: string
 ) {
   try {
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('password', password);
     await signIn('credentials', formData);
   } catch (error) {
     if (error instanceof AuthError) {
