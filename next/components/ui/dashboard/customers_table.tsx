@@ -1,6 +1,6 @@
 import Search from '@/components/ui/search';
-import { Intervenants } from '@/lib/definitions';
 import { fetchAllIntervenants } from '@/lib/data';
+import { Intervenants } from '@/lib/definitions';
 import { Edit } from 'lucide-react';
 import Link from 'next/link';
 
@@ -32,7 +32,7 @@ export default async function CustomersTable() {
                                 </thead>
 
                                 <tbody className="divide-y divide-gray-200 text-gray-900">
-                                    {intervenants.map((intervenant) => (
+                                    {intervenants.map((intervenant: Intervenants) => (
                                         <tr key={intervenant.id} className="group">
                                             <td className="whitespace-nowrap bg-white px-4 py-5 text-sm flex items-center">
                                                 <span className="inline-block w-2 h-2 mr-2 bg-green-500 rounded-full"></span>
