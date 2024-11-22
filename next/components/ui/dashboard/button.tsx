@@ -1,5 +1,8 @@
+
 import { PlusIcon } from "lucide-react";
 import Link from "next/link";
+// import { deleteInvoice } from "@/lib/actions";
+// import { TrashIcon } from "lucide-react";
 export function CreateIntervenant() {
     return (
       <Link
@@ -11,3 +14,27 @@ export function CreateIntervenant() {
       </Link>
     );
   }
+
+  
+
+
+// export function DeleteInvoice({ id }: { id: string }) {
+//   const handleDelete = async () => {
+//     try {
+//       await fetch(`/api/intervenants/${id}`, { method: 'DELETE' });
+//       console.log(`Intervenant ${id} supprimé`);
+//       // Si nécessaire, appeler une fonction pour mettre à jour l'interface utilisateur
+//     } catch (error) {
+//       console.error('Erreur lors de la suppression:', error);
+//     }
+//   };
+
+//   return (
+//     <button
+//       onClick={handleDelete}
+//       className="flex items-center text-red-500 hover:text-red-700"
+//     >
+//       Supprimer
+//     </button>
+//   );
+// }

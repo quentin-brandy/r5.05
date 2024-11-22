@@ -1,11 +1,13 @@
 import Search from '@/components/ui/search';
 import { fetchAllIntervenants } from '@/lib/data';
-import { Intervenants } from '@/lib/definitions';
 import { Edit } from 'lucide-react';
 import Link from 'next/link';
+import { Trash } from 'lucide-react';
+// import { DeleteInvoice } from './button';
 
 export default async function CustomersTable() {
     const intervenants = await fetchAllIntervenants();
+    console.log(intervenants);
     return (
         <div className="w-full mt-10">
             <Search placeholder="Search intervenants..." />
@@ -32,7 +34,7 @@ export default async function CustomersTable() {
                                 </thead>
 
                                 <tbody className="divide-y divide-gray-200 text-gray-900">
-                                    {intervenants.map((intervenant: Intervenants) => (
+                                    {intervenants.map((intervenant) => (
                                         <tr key={intervenant.id} className="group">
                                             <td className="whitespace-nowrap bg-white px-4 py-5 text-sm flex items-center">
                                                 <span className="inline-block w-2 h-2 mr-2 bg-green-500 rounded-full"></span>
@@ -52,6 +54,9 @@ export default async function CustomersTable() {
                                                     </button>
                                                 </Link>
                                             </td>
+                                            <td className="whitespace-nowrap bg-white px-4 py-5 text-sm">
+                                            {/* <DeleteInvoice id={intervenant.id} /> */}
+                                        </td>
                                         </tr>
                                     ))}
                                 </tbody>
