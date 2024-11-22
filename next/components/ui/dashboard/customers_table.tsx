@@ -1,13 +1,35 @@
+// app/customers/page.tsx
+'use client';
+
+import { useState, useEffect } from 'react';
 import Search from '@/components/ui/search';
-import { fetchAllIntervenants } from '@/lib/data';
 import { Edit } from 'lucide-react';
 import Link from 'next/link';
-import { Trash } from 'lucide-react';
-// import { DeleteInvoice } from './button';
+import { fetchAllIntervenants, deleteIntervenant } from '@/lib/data';
+import { Intervenants } from '@/lib/definitions';
 
-export default async function CustomersTable() {
-    const intervenants = await fetchAllIntervenants();
-    console.log(intervenants);
+export default function CustomersTable() {
+    const [intervenants, setIntervenants] = useState<Intervenants[]>([]); // Typage avec l'interface
+
+    useEffect(() => {
+        async function fetchData() {
+            const data = await fetchAllIntervenants();
+            setIntervenants(data);
+            console.log(data);
+        }
+        fetchData();
+    }, []);
+
+    const handleDelete = async (id: string) => {
+        try {
+            const deleted = await deleteIntervenant(id);
+            setIntervenants(prev => prev.filter(intervenant => intervenant.id !== id));
+            console.log('Intervenant deleted:', deleted);
+        } catch (error) {
+            console.error('Failed to delete intervenant', error);
+        }
+    };
+
     return (
         <div className="w-full mt-10">
             <Search placeholder="Search intervenants..." />
@@ -55,8 +77,10 @@ export default async function CustomersTable() {
                                                 </Link>
                                             </td>
                                             <td className="whitespace-nowrap bg-white px-4 py-5 text-sm">
-                                            {/* <DeleteInvoice id={intervenant.id} /> */}
-                                        </td>
+                                                <button onClick={() => handleDelete(intervenant.id)} className="text-red-500 hover:text-red-700">
+                                                    Delete
+                                                </button>
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
