@@ -1,37 +1,38 @@
+// app/customers/page.tsx
 'use client';
-import { useEffect, useState } from 'react';
+
+import { useState, useEffect } from 'react';
+import Search from '@/components/ui/search';
 import { Edit } from 'lucide-react';
 import Link from 'next/link';
+import { fetchAllIntervenants, deleteIntervenant } from '@/lib/data';
+import { Intervenants } from '@/lib/definitions';
 
 export default function CustomersTable() {
-    const [intervenants, setIntervenants] = useState([]);
+    const [intervenants, setIntervenants] = useState<Intervenants[]>([]); // Typage avec l'interface
 
     useEffect(() => {
         async function fetchData() {
-            const res = await fetch('/api/intervenants');
-            if (res.ok) {
-                const data = await res.json();
-                setIntervenants(data);
-            }
+            const data = await fetchAllIntervenants();
+            setIntervenants(data);
+            console.log(data);
         }
         fetchData();
     }, []);
 
     const handleDelete = async (id: string) => {
-        const res = await fetch('/api/intervenants', {
-            method: 'DELETE',
-            body: JSON.stringify({ id }),
-        });
-
-        if (res.ok) {
+        try {
+            const deleted = await deleteIntervenant(id);
             setIntervenants(prev => prev.filter(intervenant => intervenant.id !== id));
-        } else {
-            console.error('Failed to delete intervenant');
+            console.log('Intervenant deleted:', deleted);
+        } catch (error) {
+            console.error('Failed to delete intervenant', error);
         }
     };
 
     return (
         <div className="w-full mt-10">
+            <Search placeholder="Search intervenants..." />
             <div className="mt-6 flow-root">
                 <div className="overflow-x-auto">
                     <div className="inline-block min-w-full align-middle">
@@ -50,9 +51,6 @@ export default function CustomersTable() {
                                         </th>
                                         <th scope="col" className="px-3 py-5 font-medium">
                                             Editer
-                                        </th>
-                                        <th scope="col" className="px-3 py-5 font-medium">
-                                            Supprimer
                                         </th>
                                     </tr>
                                 </thead>
@@ -79,11 +77,8 @@ export default function CustomersTable() {
                                                 </Link>
                                             </td>
                                             <td className="whitespace-nowrap bg-white px-4 py-5 text-sm">
-                                                <button
-                                                    onClick={() => handleDelete(intervenant.id)}
-                                                    className="flex items-center text-red-500 hover:text-red-700"
-                                                >
-                                                    Supprimer
+                                                <button onClick={() => handleDelete(intervenant.id)} className="text-red-500 hover:text-red-700">
+                                                    Delete
                                                 </button>
                                             </td>
                                         </tr>

@@ -17,9 +17,15 @@ export type Intervenants = {
     key: string;
     creationdate: string;
     enddate: string;
-    availability: boolean;
+    availability: JSON;
 };
   
+export type IntervenantCreation = {
+    email: string;
+    firstname: string;
+    lastname: string;
+    availability: JSON;
+};
   export type Invoice = {
     id: string;
     customer_id: string;

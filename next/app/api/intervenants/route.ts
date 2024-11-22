@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
+import { v4 as uuidv4 } from 'uuid';
 
 const prisma = new PrismaClient();
 
@@ -29,3 +30,33 @@ export async function DELETE(request: Request) {
         await prisma.$disconnect();
     }
 }
+
+
+export async function POST(request: Request) {
+    try {
+        const { email, firstname, lastname, availability } = await request.json();
+        const key = uuidv4();
+        const creationDate = new Date();
+        const endDate = new Date(creationDate);
+        endDate.setMonth(endDate.getMonth() + 2);
+
+        const newIntervenant = await prisma.intervenants.create({
+            data: {
+                email,
+                firstname,
+                lastname,
+                key,
+                availability,
+                creationDate,
+                endDate,
+            },
+        });
+        return NextResponse.json(newIntervenant);
+    } catch (error) {
+        console.error('Error creating intervenant:', error);
+        return NextResponse.error();
+    } finally {
+        await prisma.$disconnect();
+    }
+}
+
