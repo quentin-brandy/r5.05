@@ -1,16 +1,37 @@
-import Search from '@/components/ui/search';
-import { fetchAllIntervenants } from '@/lib/data';
+'use client';
+import { useEffect, useState } from 'react';
 import { Edit } from 'lucide-react';
 import Link from 'next/link';
-import { Trash } from 'lucide-react';
-// import { DeleteInvoice } from './button';
 
-export default async function CustomersTable() {
-    const intervenants = await fetchAllIntervenants();
-    console.log(intervenants);
+export default function CustomersTable() {
+    const [intervenants, setIntervenants] = useState([]);
+
+    useEffect(() => {
+        async function fetchData() {
+            const res = await fetch('/api/intervenants');
+            if (res.ok) {
+                const data = await res.json();
+                setIntervenants(data);
+            }
+        }
+        fetchData();
+    }, []);
+
+    const handleDelete = async (id: string) => {
+        const res = await fetch('/api/intervenants', {
+            method: 'DELETE',
+            body: JSON.stringify({ id }),
+        });
+
+        if (res.ok) {
+            setIntervenants(prev => prev.filter(intervenant => intervenant.id !== id));
+        } else {
+            console.error('Failed to delete intervenant');
+        }
+    };
+
     return (
         <div className="w-full mt-10">
-            <Search placeholder="Search intervenants..." />
             <div className="mt-6 flow-root">
                 <div className="overflow-x-auto">
                     <div className="inline-block min-w-full align-middle">
@@ -29,6 +50,9 @@ export default async function CustomersTable() {
                                         </th>
                                         <th scope="col" className="px-3 py-5 font-medium">
                                             Editer
+                                        </th>
+                                        <th scope="col" className="px-3 py-5 font-medium">
+                                            Supprimer
                                         </th>
                                     </tr>
                                 </thead>
@@ -55,8 +79,13 @@ export default async function CustomersTable() {
                                                 </Link>
                                             </td>
                                             <td className="whitespace-nowrap bg-white px-4 py-5 text-sm">
-                                            {/* <DeleteInvoice id={intervenant.id} /> */}
-                                        </td>
+                                                <button
+                                                    onClick={() => handleDelete(intervenant.id)}
+                                                    className="flex items-center text-red-500 hover:text-red-700"
+                                                >
+                                                    Supprimer
+                                                </button>
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>
