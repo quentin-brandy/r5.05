@@ -124,3 +124,21 @@ export async function regenerateIntervenantKey(intervenantId: string) {
         throw error;
     }
 }
+
+export async function RegenerateAllIntervenantKey() {
+    try {
+        const response = await fetch(`/api/intervenants/regenerate-all-key`, {
+            method: 'GET',
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to regenerate all intervenant key');
+        }
+
+        const responseData = await response.json();
+        return responseData;
+    } catch (error) {
+        console.error('Error regenerating all intervenant key:', error);
+        throw error;
+    }
+}

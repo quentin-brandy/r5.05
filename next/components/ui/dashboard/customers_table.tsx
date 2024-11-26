@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import Search from '@/components/ui/search';
 import { Edit } from 'lucide-react';
 import Link from 'next/link';
-import { fetchAllIntervenants, deleteIntervenant , regenerateIntervenantKey } from '@/lib/data';
+import { fetchAllIntervenants, deleteIntervenant , regenerateIntervenantKey , RegenerateAllIntervenantKey } from '@/lib/data';
 import { Intervenants } from '@/lib/definitions';
 export default function CustomersTable() {
     const [intervenants, setIntervenants] = useState<Intervenants[]>([]); // Typage avec l'interface
@@ -42,9 +42,30 @@ export default function CustomersTable() {
             console.error('Failed to regenerate intervenant key', error);
         }
     }
+const handleRegenerateAllIntervenantKey = async () => {
+    try {
+        let data = await RegenerateAllIntervenantKey();
+        console.log('Keys regenerated:', data);
+        if(data.message === 'Keys regenerated'){
+            setIntervenants(prev => 
+                prev.map(intervenant => ({
+                    ...intervenant,
+                    endDate: new Date(new Date().setMonth(new Date().getMonth() + 2)).toISOString()
+                }))
+            );
+        }
+    } catch (error) {
+        console.error('Failed to regenerate all intervenant keys', error);
+    }
+}
+
     return (
         <div className="w-full mt-10">
             <Search placeholder="Search intervenants..." />
+            <div className='flex justify-end pt-5 w-full'>
+            <button onClick={() => handleRegenerateAllIntervenantKey()} className='w-fit flex h-10 items-center justify-end rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition-colors hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'>regenerate all key
+            </button>
+            </div>
             <div className="mt-6 flow-root">
                 <div className="overflow-x-auto">
                     <div className="inline-block min-w-full align-middle">
