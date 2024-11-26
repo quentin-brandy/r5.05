@@ -20,6 +20,45 @@ export async function fetchAllIntervenants(): Promise<Intervenants[]> {
         throw error;
     }
 }
+export async function fetchIntervenantbyId(intervenantId: string) {
+    try {
+        const response = await fetch(`/api/intervenants/${intervenantId}`, {
+            method: 'GET',
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch intervenant');
+        }
+
+        const intervenant = await response.json();
+        return intervenant;
+    } catch (error) {
+        console.error('Error fetching intervenant:', error);
+        throw error;
+    }
+}
+
+export async function updateIntervenantAPI(intervenantId: string, data: IntervenantCreation) {
+    try {
+        const response = await fetch(`/api/intervenants/${intervenantId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to update intervenant');
+        }
+
+        const responseData = await response.json();
+        return responseData;
+    } catch (error) {
+        console.error('Error updating intervenant:', error);
+        throw error;
+    }
+}
 
 
 export async function deleteIntervenant(intervenantId: string) {
@@ -65,5 +104,23 @@ export async function createIntervenantAPI(data: IntervenantCreation) {
         } else {
             return { error: 'Failed to create intervenant via API: Unknown error' };
         }
+    }
+}
+
+export async function regenerateIntervenantKey(intervenantId: string) {
+    try {
+        const response = await fetch(`/api/intervenants/${intervenantId}/regenerate-key`, {
+            method: 'POST',
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to regenerate intervenant key');
+        }
+
+        const responseData = await response.json();
+        return responseData;
+    } catch (error) {
+        console.error('Error regenerating intervenant key:', error);
+        throw error;
     }
 }

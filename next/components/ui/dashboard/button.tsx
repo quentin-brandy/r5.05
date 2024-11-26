@@ -2,7 +2,7 @@
 import { PlusIcon } from "lucide-react";
 import Link from "next/link";
 import { deleteIntervenant } from "@/lib/data";
-
+import { regenerateIntervenantKey } from "@/lib/data";
 export function CreateIntervenant() {
     return (
       <Link
@@ -14,21 +14,3 @@ export function CreateIntervenant() {
       </Link>
     );
   }
-
-  
-
-
-export function DeeleteIntervenant({ id }: { id: string }) {
-  const handleDelete = async () => {
-    await deleteIntervenant(id);
-  };
-
-  return (
-    <button
-      onClick={handleDelete}
-      className="flex items-center text-red-500 hover:text-red-700"
-    >
-      Supprimer
-    </button>
-  );
-}

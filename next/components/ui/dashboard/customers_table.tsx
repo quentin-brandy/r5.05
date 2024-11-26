@@ -5,9 +5,8 @@ import { useState, useEffect } from 'react';
 import Search from '@/components/ui/search';
 import { Edit } from 'lucide-react';
 import Link from 'next/link';
-import { fetchAllIntervenants, deleteIntervenant } from '@/lib/data';
+import { fetchAllIntervenants, deleteIntervenant , regenerateIntervenantKey } from '@/lib/data';
 import { Intervenants } from '@/lib/definitions';
-
 export default function CustomersTable() {
     const [intervenants, setIntervenants] = useState<Intervenants[]>([]); // Typage avec l'interface
 
@@ -30,6 +29,19 @@ export default function CustomersTable() {
         }
     };
 
+    const handleRegenerate = async (id: string) => {
+        try {
+            const regenerated = await regenerateIntervenantKey(id);
+            setIntervenants(prev => 
+                prev.map(intervenant => 
+                    intervenant.id === id ? { ...intervenant, endDate: regenerated.endDate } : intervenant
+                )
+            );
+            console.log('Intervenant key regenerated:', regenerated);
+        } catch (error) {
+            console.error('Failed to regenerate intervenant key', error);
+        }
+    }
     return (
         <div className="w-full mt-10">
             <Search placeholder="Search intervenants..." />
@@ -52,6 +64,12 @@ export default function CustomersTable() {
                                         <th scope="col" className="px-3 py-5 font-medium">
                                             Editer
                                         </th>
+                                        <th scope="col" className="px-3 py-5 font-medium">
+                                            Supprimer   
+                                        </th>
+                                    <th scope='col' className='px-3 py-5 font-medium'>
+                                        Regénérer la clé    
+                                        </th> 
                                     </tr>
                                 </thead>
 
@@ -59,7 +77,7 @@ export default function CustomersTable() {
                                     {intervenants.map((intervenant) => (
                                         <tr key={intervenant.id} className="group">
                                             <td className="whitespace-nowrap bg-white px-4 py-5 text-sm flex items-center">
-                                                <span className="inline-block w-2 h-2 mr-2 bg-green-500 rounded-full"></span>
+                                                <span className={`inline-block w-2 h-2 mr-2 rounded-full ${new Date(intervenant.endDate) < new Date() ? 'bg-red-500' : 'bg-green-500'}`}></span>
                                                 {intervenant.firstname}
                                             </td>
                                             <td className="whitespace-nowrap bg-white px-4 py-5 text-sm">
@@ -69,7 +87,7 @@ export default function CustomersTable() {
                                                 {intervenant.email}
                                             </td>
                                             <td className="whitespace-nowrap bg-white px-4 py-5 text-sm">
-                                                <Link href={`/edit/${intervenant.id}`}>
+                                                <Link href={`/dashboard/intervenants/${intervenant.id}/edit`}>
                                                     <button className="flex items-center text-blue-500 hover:text-blue-700">
                                                         <Edit className="w-4 h-4 mr-1" />
                                                         Edit
@@ -81,6 +99,13 @@ export default function CustomersTable() {
                                                     Delete
                                                 </button>
                                             </td>
+                                        <td className="whitespace-nowrap bg-white px-4 py-5 text-sm">
+                                        <button
+      onClick={() => handleRegenerate(intervenant.id)}
+      className="flex items-center text-green-500 hover:text-green-700"
+    >
+      Régénérer
+    </button>                                        </td>
                                         </tr>
                                     ))}
                                 </tbody>

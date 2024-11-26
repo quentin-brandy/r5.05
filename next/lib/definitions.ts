@@ -16,7 +16,7 @@ export type Intervenants = {
     lastname: string;
     key: string;
     creationdate: string;
-    enddate: string;
+    endDate: string;
     availability: JSON;
 };
   
