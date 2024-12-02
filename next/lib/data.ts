@@ -1,4 +1,3 @@
-
 import { Intervenants } from './definitions';
 
 
@@ -139,6 +138,28 @@ export async function RegenerateAllIntervenantKey() {
         return responseData;
     } catch (error) {
         console.error('Error regenerating all intervenant key:', error);
+        throw error;
+    }
+}
+
+export async function verifyKey(key: string) {
+    try {
+        const response = await fetch(`/api/intervenants/verify-key`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ key }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to verify intervenant key');
+        }
+
+        const responseData = await response.json();
+        return responseData;
+    } catch (error) {
+        console.error('Error verifying intervenant key:', error);
         throw error;
     }
 }
