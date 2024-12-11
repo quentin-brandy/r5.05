@@ -8,7 +8,6 @@ import Calendar from '@/components/ui/availability/Calendar';
 const Availability: React.FC = () => {
     const [intervenant, setIntervenant] = useState<Intervenants | null>(null);
     const router = useRouter();
-
     useEffect(() => {
         const verifyKeyURL = async () => {
             const urlParams = new URLSearchParams(window.location.search);
@@ -44,7 +43,7 @@ const Availability: React.FC = () => {
             ) : (
                 <p>Loading...</p>
             )}
-            <Calendar intervenant={intervenant?.availability} />
+            <Calendar intervenantavailable={intervenant?.availability || []} />
         </div>
     );
 };

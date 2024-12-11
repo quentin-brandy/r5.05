@@ -1,0 +1,5 @@
+cd next
+sudo npm install
+
+docker compose build
+docker compose up
