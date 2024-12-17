@@ -12,7 +12,7 @@ const links = [
     href: '/dashboard/intervenants',
    
   },
-  { name: 'Disponibilités', href: '/dashboard/disponibilites',  },
+  { name: 'Disponibilités', href: '/dashboard/availability',  },
 ];
 
 export default function NavLinks() {

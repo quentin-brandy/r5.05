@@ -1,21 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import dayGridPlugin from '@fullcalendar/daygrid';
-import { convertAvailabilitiesToEvents } from '../../../lib/date'; // Importez la fonction depuis date.ts
+import { convertAvailabilitiesToEvents } from '@/lib/date'; 
+import { modifyIntervenantAvailability } from '@/lib/data';
+import {IntervenantAvailability } from '@/lib/definitions';
 
-interface Availability {
-    days: string;
-    from: string;
-    to: string;
+interface CalendarProps {
+    intervenantavailable: IntervenantAvailability & { lastModify?: string };
+    intervenantid?: string;
+    onLastModifyChange?: (date: string) => void;
 }
 
-interface Intervenantavailability {
-    [week: string]: Availability[];
-}
-
-export default function Calendar({ intervenantavailable }: { intervenantavailable: Intervenantavailability }) {
+export default function Calendar({ intervenantavailable, intervenantid , onLastModifyChange }: CalendarProps) {
+    const calendarRef = useRef<any>(null);
+    const firstCalendarRef = useRef<any>(null);
     const [defaultEvents, setDefaultEvents] = useState<any[]>([]);
     const [nonDefaultEvents, setNonDefaultEvents] = useState<any[]>([]);
     const [selectedEvent, setSelectedEvent] = useState<any | null>(null);
@@ -25,6 +25,8 @@ export default function Calendar({ intervenantavailable }: { intervenantavailabl
     const [editFrom, setEditFrom] = useState('');
     const [editTo, setEditTo] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
+    const [months, setMonths] = useState<Date[]>([]);
+
 
     const defaultWeek = { month: 7, week: 2 }; // Deuxième semaine d'août (mois 7)
 
@@ -34,28 +36,39 @@ export default function Calendar({ intervenantavailable }: { intervenantavailabl
         const nonDefaultEvents = allEvents.filter(event => !event.isDefault);
         setDefaultEvents(defaultEvents);
         setNonDefaultEvents(nonDefaultEvents);
+    
+        // Correction du décalage des mois
+        const currentMonth = new Date();
+        const monthsArray = [];
+        for (let i = 0; i < 12; i++) {
+            const month = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + i, 1);
+            monthsArray.push(month);
+        }
+        setMonths(monthsArray);
+        updateLastModify();
     }, [intervenantavailable]);
 
     const updateAvailabilityServer = async () => {
-        console.log('Updated intervenantavailable:', intervenantavailable);
-        // try {
-        //     const response = await fetch('/api/intervenants/update-availability', {
-        //         method: 'POST',
-        //         headers: {
-        //             'Content-Type': 'application/json',
-        //         },
-        //         body: JSON.stringify(intervenantavailable),
-        //     });
-
-        //     if (!response.ok) {
-        //         throw new Error('Échec de la mise à jour des disponibilités');
-        //     }
-
-        //     console.log('Disponibilités mises à jour avec succès');
-        // } catch (error) {
-        //     console.error('Erreur lors de la mise à jour des disponibilités :', error);
-        // }
+        if (!intervenantid) {
+            console.error('No intervenant ID provided');
+            return;
+        }
+        
+        try {
+            const update = await modifyIntervenantAvailability(intervenantid, intervenantavailable);
+            console.log('Update successful:', update);
+            // Optionnel: Afficher un message de succès
+            console.log('Disponibilités mises à jour avec succès');
+        } catch (error) {
+            console.error('Error updating availability:', error);
+            if (error instanceof Error) {
+                console.error('Error details:', error.message);
+            }
+            // Optionnel: Afficher un message d'erreur à l'utilisateur
+            setErrorMessage(error instanceof Error ? error.message : 'Erreur lors de la mise à jour');
+        }
     };
+
     const getWeekNumber = (date: Date) => {
         const target = new Date(date.valueOf());
         const dayNumber = (date.getDay() + 6) % 7;
@@ -67,7 +80,7 @@ export default function Calendar({ intervenantavailable }: { intervenantavailabl
         }
         return 1 + Math.ceil((firstThursday - target.valueOf()) / 604800000);
     };
-    
+
     const normalizeTime = (time: string , weekNum?: number ) => {
         const [hours, minutes] = time.split(':').map(Number);
         // Vérifier s'il existe déjà des événements avec cette heure
@@ -87,7 +100,34 @@ export default function Calendar({ intervenantavailable }: { intervenantavailabl
                 `${hours}:${minutes.toString().padStart(2, '0')}`;
         }
     };
+
+    const updateSecondCalendar = () => {
+        const calendarApi = calendarRef.current?.getApi();
+        if (calendarApi) {
+            const currentDate = calendarApi.getDate();
+            const weekNum = getWeekNumber(currentDate);
+            
+            if (isDefaultCalendar) {
+                // Si on est en mode calendrier par défaut, afficher uniquement les événements par défaut
+                calendarApi.removeAllEvents();
+                calendarApi.addEventSource(defaultEvents);
+            } else {
+                // Vérifier s'il y a des événements spécifiques pour cette semaine
+                const eventsThisWeek = nonDefaultEvents.filter(event => {
+                    const eventWeek = getWeekNumber(new Date(event.start));
+                    return eventWeek === weekNum;
+                });
     
+                // Si pas d'événements cette semaine, utiliser les événements par défaut
+                const events = eventsThisWeek.length > 0 ? eventsThisWeek : defaultEvents;
+                
+                // Mettre à jour le calendrier
+                calendarApi.removeAllEvents();
+                calendarApi.addEventSource(events);
+            }
+        }
+    };
+
     const handleSelect = (selectInfo: any) => {
         const newEvent = {
             title: 'Disponible',
@@ -134,7 +174,8 @@ export default function Calendar({ intervenantavailable }: { intervenantavailabl
         } else {
             setNonDefaultEvents(prevEvents => [...prevEvents, newEvent]);
         }
-        
+        updateSecondCalendar();
+        updateLastModify();
         updateAvailabilityServer();
     };
 
@@ -238,6 +279,7 @@ export default function Calendar({ intervenantavailable }: { intervenantavailabl
             }
             
             setIsDialogOpen(false);
+            updateLastModify();
             updateAvailabilityServer();
         }
     };
@@ -378,6 +420,7 @@ export default function Calendar({ intervenantavailable }: { intervenantavailabl
                 }
             }
             setIsDialogOpen(false);
+            updateLastModify();
             updateAvailabilityServer();
             }
     };
@@ -385,6 +428,17 @@ export default function Calendar({ intervenantavailable }: { intervenantavailabl
     const handleSwitchCalendar = () => {
         setIsDefaultCalendar(!isDefaultCalendar);
         setCalendarKey(prevKey => prevKey + 1);
+        
+        // Mise à jour uniquement du premier calendrier
+        const firstCalendarApi = firstCalendarRef.current?.getApi();
+        if (firstCalendarApi) {
+            firstCalendarApi.removeAllEvents();
+            if (!isDefaultCalendar) { // Notez le !isDefaultCalendar car l'état n'est pas encore mis à jour
+                firstCalendarApi.addEventSource(defaultEvents);
+            } else {
+                firstCalendarApi.addEventSource(nonDefaultEvents);
+            }
+        }
     };
 
     const getDefaultWeekStart = () => {
@@ -396,38 +450,179 @@ export default function Calendar({ intervenantavailable }: { intervenantavailabl
         return new Date(firstMonday.setDate(firstMonday.getDate() + (defaultWeek.week - 1) * 7));
     };
 
+    const [selectedWeek, setSelectedWeek] = useState<number>(() => {
+        const today = new Date();
+        const currentWeek = getWeekNumber(today);
+        return currentWeek;
+    });
+
+    const handleDateSelect = (selectInfo: any) => {
+        const selectedDate = new Date(selectInfo.start);
+        const weekNumber = getWeekNumber(selectedDate);
+        setSelectedWeek(weekNumber);
+    
+        // Mettre à jour les deux calendriers
+        const firstCalendarApi = firstCalendarRef.current?.getApi();
+        const secondCalendarApi = calendarRef.current?.getApi();
+    
+        if (firstCalendarApi) {
+            firstCalendarApi.gotoDate(selectedDate);
+            firstCalendarApi.render(); // Forcer le rendu
+        }
+        if (secondCalendarApi) {
+            secondCalendarApi.gotoDate(selectedDate);
+        }
+    };
+    
+
+
+    const getCombinedEvents = (selectedDate: Date) => {
+        const weekNum = getWeekNumber(selectedDate);
+        const weekKey = `S${weekNum}`;
+        
+        // Vérifier s'il y a des événements pour cette semaine spécifique
+        const eventsThisWeek = nonDefaultEvents.filter(event => {
+            const eventWeek = getWeekNumber(new Date(event.start));
+            return eventWeek === weekNum;
+        });
+    
+        // Retourner les événements de la semaine ou les événements par défaut
+        return eventsThisWeek.length > 0 ? eventsThisWeek : defaultEvents;
+    };
+    
+
+    const updateLastModify = () => {
+        const newDate = new Date().toISOString();
+        intervenantavailable.lastModify = newDate;
+        if (onLastModifyChange) {
+            onLastModifyChange(newDate);
+        }
+    };
+
     return (
-        <div className="flex flex-col h-full px-10">
-            <button onClick={handleSwitchCalendar} className="mb-4 px-4 py-2 bg-blue-500 text-white rounded">
-                {isDefaultCalendar ? 'Retour au calendrier principal' : 'Configurer les disponibilités par défaut'}
-            </button>
-            <FullCalendar
-                key={calendarKey}
-                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                initialView="timeGridWeek"
-                weekNumbers
-                weekends={false}
-                firstDay={1}
-                headerToolbar={
-                    isDefaultCalendar
-                        ? false
-                        : {
-                              left: 'prev,next today',
-                              center: 'title',
-                              right: 'timeGridWeek',
-                          }
+        <div className="flex h-full px-10 space-x-8 mb-10">
+        {/* Monthly View Section - Left Side avec scroll */}
+        <div className="w-1/4 overflow-y-auto" style={{ maxHeight: 'calc(200vh )' }}>
+            <div className="space-y-4">
+                {months.map((month, index) => (
+                    <div key={index} className="border p-4">
+                        <h3 className="text-center font-medium">
+                            {month.toLocaleString('fr-FR', { month: 'long', year: 'numeric' })}
+                        </h3>
+        <FullCalendar
+            plugins={[dayGridPlugin, interactionPlugin]}
+            initialView="dayGridMonth"
+            headerToolbar={false}
+            locale="fr"
+            firstDay={1}
+            weekends={false}
+            events={nonDefaultEvents.map(event => ({
+                start: event.start,
+                end: event.end,
+                display: 'background',
+                backgroundColor: '#3B82F6',
+                allDay: true
+            }))}
+            initialDate={month}
+            height="auto"
+            selectable={true}
+            select={handleDateSelect}
+            editable={false}
+            dayCellDidMount={(info) => {
+                const hasEvent = nonDefaultEvents.some(event => {
+                    const eventDate = new Date(event.start);
+                    return eventDate.toDateString() === info.date.toDateString();
+                });
+                if (hasEvent) {
+                    info.el.style.backgroundColor = '#3B82F6';
                 }
-                locale="fr"
-                events={isDefaultCalendar ? defaultEvents : nonDefaultEvents}
-                initialDate={isDefaultCalendar ? getDefaultWeekStart().toISOString().split('T')[0] : undefined}
-                selectable
-                select={handleSelect}
-                eventClick={handleEventClick}
-                height="auto"
-                allDaySlot={false}
-                slotMinTime="07:00:00"
-                slotMaxTime="21:00:00"
-            />
+            }}
+        />
+    </div>
+))}
+</div>
+            </div>
+    
+            {/* Main Calendars Section - Right Side */}
+            <div className="flex-1 space-y-8">
+                {/* First Calendar Section */}
+                <div>
+    <button onClick={handleSwitchCalendar} className="mb-4 px-4 py-2 bg-blue-500 text-white rounded">
+        {isDefaultCalendar ? 'Retour au calendrier principal' : 'Configurer les disponibilités par défaut'}
+    </button>
+    <FullCalendar
+    ref={firstCalendarRef}
+    key={`first-calendar-${calendarKey}`} // Clé unique pour le premier calendrier
+    plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+    initialView="timeGridWeek"
+    weekNumbers
+    weekends={false}
+    firstDay={1}
+    headerToolbar={
+        isDefaultCalendar
+            ? false
+            : {
+                  left: 'prev,next today',
+                  center: 'title',
+                  right: 'timeGridWeek',
+              }
+    }
+    locale="fr"
+    events={isDefaultCalendar ? defaultEvents : nonDefaultEvents}
+    initialDate={isDefaultCalendar ? getDefaultWeekStart().toISOString().split('T')[0] : undefined}
+    selectable
+    select={handleSelect}
+    eventClick={handleEventClick}
+    height="auto"
+    allDaySlot={false}
+    slotMinTime="07:00:00"
+    slotMaxTime="21:00:00"
+    datesSet={(dateInfo) => {
+        if (isDefaultCalendar) {
+            const calendarApi = firstCalendarRef.current?.getApi();
+            if (calendarApi) {
+                calendarApi.removeAllEvents();
+                calendarApi.addEventSource(defaultEvents);
+            }
+        }
+    }}
+/>
+</div>
+    
+                {/* Second Calendar Section */}
+                <div>
+                <FullCalendar
+    ref={calendarRef}
+    plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+    initialView="timeGridWeek"
+    weekNumbers
+    weekends={false}
+    firstDay={1}
+    headerToolbar={{
+        left: 'prev,next today',
+        center: 'title',
+        right: 'timeGridWeek',
+    }}
+    locale="fr"
+    events={nonDefaultEvents} // Commencer par afficher tous les événements
+    height="auto"
+    editable={false}
+    allDaySlot={false}
+    slotMinTime="07:00:00"
+    slotMaxTime="21:00:00"
+    datesSet={(dateInfo) => {
+        const events = getCombinedEvents(dateInfo.start);
+        const calendarApi = calendarRef.current?.getApi();
+        if (calendarApi) {
+            calendarApi.removeAllEvents();
+            calendarApi.addEventSource(events);
+        }
+    }}
+/>
+                </div>
+            </div>
+    
+            {/* Dialog */}
             {isDialogOpen && (
                 <div className="fixed z-10 inset-0 flex items-center justify-center bg-black bg-opacity-50">
                     <div className="bg-white p-6 rounded shadow-lg">

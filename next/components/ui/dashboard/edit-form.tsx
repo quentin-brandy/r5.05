@@ -1,6 +1,5 @@
 'use client';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
 import { updateIntervenantAPI, fetchIntervenantbyId  } from '@/lib/data';
 import { useState, useEffect } from 'react';
 import { Intervenants } from '@/lib/definitions';
@@ -42,20 +41,6 @@ const EditForm = () => {
         event.preventDefault();
         try {
             const data = { ...formData };
-            if (data.availability) {
-                try {
-                    data.availability = JSON.parse(data.availability as unknown as string);
-                    if (typeof data.availability !== 'object') {
-                        setErrors({ availability: ['Availability must be a valid JSON object'] });
-                        return;
-                    }
-                } catch (e) {
-                    setErrors({ availability: ['Availability must be a valid JSON object'] });
-                    return;
-                }
-            } else {
-                delete data.availability;
-            }
             if (data.endDate) {
                 data.endDate = new Date(data.endDate).toISOString();
             }
@@ -165,29 +150,6 @@ const EditForm = () => {
                     </div>
 
                     <div className="mb-4">
-                        <label htmlFor="availability" className="mb-2 block text-sm font-medium">
-                            Availability
-                        </label>
-                        <textarea
-                            id="availability"
-                            name="availability"
-                            placeholder='Enter availability as JSON, e.g. {"monday": true, "tuesday": false}'
-                            value={typeof formData.availability === 'string' ? formData.availability : JSON.stringify(formData.availability) || ''}
-                            onChange={handleChange}
-                            className="peer block w-full rounded-md border border-gray-200 py-2 pl-3 text-sm outline-2 placeholder:text-gray-500"
-                            aria-describedby="availability-error"
-                        />
-                        <div id="availability-error" aria-live="polite" aria-atomic="true">
-                            {errors.availability &&
-                                errors.availability.map((error: string) => (
-                                    <p className="mt-2 text-sm text-red-500" key={error}>
-                                        {error}
-                                    </p>
-                                ))}
-                        </div>
-                    </div>
-
-                    <div className="mb-4">
                         <label htmlFor="endDate" className="mb-2 block text-sm font-medium">
                             End Date
                         </label>
@@ -217,7 +179,12 @@ const EditForm = () => {
                         >
                             Cancel
                         </Link>
-                        <Button type="submit">Update Intervenant</Button>
+                        <button
+                            type="submit"
+                            className="flex h-10 items-center rounded-lg bg-blue-500 px-4 text-sm font-medium text-white transition-colors hover:bg-blue-400"
+                        >
+                            Update Intervenant
+                        </button>
                     </div>
                 </div>
             </form>

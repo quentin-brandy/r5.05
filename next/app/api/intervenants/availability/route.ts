@@ -1,23 +1,44 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
 
-type Intervenant = {
-    availability: any;
-};
+const prisma = new PrismaClient();
 
-let intervenant: Intervenant = {
-    availability: null,
-};
+export async function GET() {
+    try {
+        const intervenants = await prisma.intervenants.findMany({
+            select: {
+                firstname: true,
+                lastname: true,
+                availability: true
+            }
+        });
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method === 'POST') {
-        try {
-            const data = req.body;
-            intervenant.availability = data;
-            res.status(200).json({ message: 'Availability updated successfully', intervenant });
-        } catch (error) {
-            res.status(500).json({ message: 'Internal Server Error' });
+        const formattedData: { [key: string]: any } = {};
+
+        for (const intervenant of intervenants) {
+            const name = `${intervenant.firstname} ${intervenant.lastname}`;
+            
+            if (!intervenant.availability) {
+                formattedData[name] = [];
+                continue;
+            }
+
+            // Utiliser directement la disponibilité sans parser
+            formattedData[name] = intervenant.availability;
         }
-    } else {
-        res.status(405).json({ message: 'Method Not Allowed' });
+
+        return new NextResponse(JSON.stringify(formattedData, null, 2), {
+            headers: {
+                'Content-Type': 'application/json',
+                'Content-Disposition': 'attachment; filename=intervenants-availability.json'
+            }
+        });
+
+    } catch (error) {
+        console.error('Error exporting intervenants:', error);
+        return NextResponse.json(
+            { error: 'Failed to export intervenants availability' },
+            { status: 500 }
+        );
     }
 }

@@ -2,10 +2,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Search from '@/components/ui/search';
 import { Edit } from 'lucide-react';
 import Link from 'next/link';
-import { fetchAllIntervenants, deleteIntervenant , regenerateIntervenantKey , RegenerateAllIntervenantKey } from '@/lib/data';
+import { fetchAllIntervenants, deleteIntervenant , regenerateIntervenantKey , RegenerateAllIntervenantKey , ExportAvailability } from '@/lib/data';
 import { Intervenants } from '@/lib/definitions';
 export default function CustomersTable() {
     const [intervenants, setIntervenants] = useState<Intervenants[]>([]); // Typage avec l'interface
@@ -32,12 +31,12 @@ export default function CustomersTable() {
     const handleRegenerate = async (id: string) => {
         try {
             const regenerated = await regenerateIntervenantKey(id);
+            console.log('Intervenant key regenerated:', regenerated);
             setIntervenants(prev => 
                 prev.map(intervenant => 
-                    intervenant.id === id ? { ...intervenant, endDate: regenerated.endDate } : intervenant
+                    intervenant.id === id ? regenerated : intervenant
                 )
             );
-            console.log('Intervenant key regenerated:', regenerated);
         } catch (error) {
             console.error('Failed to regenerate intervenant key', error);
         }
@@ -47,23 +46,44 @@ const handleRegenerateAllIntervenantKey = async () => {
         let data = await RegenerateAllIntervenantKey();
         console.log('Keys regenerated:', data);
         if(data.message === 'Keys regenerated'){
-            setIntervenants(prev => 
-                prev.map(intervenant => ({
-                    ...intervenant,
-                    endDate: new Date(new Date().setMonth(new Date().getMonth() + 2)).toISOString()
-                }))
-            );
+            const updatedData = await fetchAllIntervenants();
+            setIntervenants(updatedData);
         }
     } catch (error) {
         console.error('Failed to regenerate all intervenant keys', error);
     }
 }
 
+const exportIntervenantAvailability = async () => { 
+    try {
+        const response = await ExportAvailability();
+        if (!response.ok) {
+            throw new Error('Failed to export data');
+        }
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'intervenants-availability.json';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+
+
+    } catch (error) {
+        console.error('Error:', error);
+        throw error;
+    }
+}
+
     return (
         <div className="w-full mt-10">
-            <Search placeholder="Search intervenants..." />
             <div className='flex justify-end pt-5 w-full'>
-            <button onClick={() => handleRegenerateAllIntervenantKey()} className='w-fit flex h-10 items-center justify-end rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition-colors hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'>regenerate all key
+            <button onClick={() => handleRegenerateAllIntervenantKey()} className='w-fit flex h-10 items-center justify-end rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition-colors hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'>régénérer toutes les clés
+            </button>
+            <button onClick={() => exportIntervenantAvailability()} className='w-fit ml-10 flex h-10 items-center justify-end rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition-colors hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600'>Exporter les disponibilités des intervenants
             </button>
             </div>
             <div className="mt-6 flow-root">
@@ -91,6 +111,9 @@ const handleRegenerateAllIntervenantKey = async () => {
                                     <th scope='col' className='px-3 py-5 font-medium'>
                                         Regénérer la clé    
                                         </th> 
+                                        <th scope='col' className='px-3 py-5 font-medium'>
+                                            Clé
+                                        </th>
                                     </tr>
                                 </thead>
 
@@ -127,6 +150,9 @@ const handleRegenerateAllIntervenantKey = async () => {
     >
       Régénérer
     </button>                                        </td>
+                                            <td className=" bg-white px-4 py-5 text-sm">
+                                                {intervenant.key}
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>

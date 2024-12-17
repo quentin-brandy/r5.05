@@ -163,3 +163,41 @@ export async function verifyKey(key: string) {
         throw error;
     }
 }
+export async function modifyIntervenantAvailability(intervenantId: string, availability: any) {
+    try {
+        const response = await fetch(`/api/intervenants/${intervenantId}/availability`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ availability }),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.error || 'Failed to modify intervenant availability');
+        }
+
+        return data;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function ExportAvailability() {
+    try {
+        const response = await fetch(`/api/intervenants/availability`, {
+            method: 'GET',
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to export intervenant availability');
+        }
+
+        return response;
+    } catch (error) {
+        console.error('Error exporting intervenant availability:', error);
+        throw error;
+    }
+}

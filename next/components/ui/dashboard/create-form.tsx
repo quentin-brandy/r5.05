@@ -1,6 +1,5 @@
 'use client';
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
 import { createIntervenantAPI } from '@/lib/data';
 import { useState } from 'react';
 import { IntervenantCreation } from '@/lib/definitions';
@@ -15,16 +14,16 @@ const CreateForm = () => {
         const formData = new FormData(event.currentTarget);
         const data = Object.fromEntries(formData.entries());
         console.log('Form data:', data); // Vérifiez ici que les données sont correctement récupérées
-    
         try {
-                data.availability = JSON.parse(data.availability as string);
-                if (typeof data.availability !== 'object') {
-                    setTimeout(() => {
-                    setErrors({ availability: ['Availability must be a valid JSON object'] });
-                }, 5000);
-                    return;
-                }
-            let newuser = await createIntervenantAPI(data as unknown as IntervenantCreation);
+            // Initialiser l'availability avec un objet vide
+            const dataWithAvailability = {
+                ...data,
+                availability: {
+                    default: [], // Tableau vide pour les événements par défaut
+                    // Pas besoin d'initialiser d'autres semaines, elles seront créées dynamiquement
+                },
+            };
+            let newuser = await createIntervenantAPI(dataWithAvailability as unknown as IntervenantCreation);
             console.log('Intervenant créé avec succès');
             console.log(newuser);
             if (newuser.error) {
@@ -40,8 +39,9 @@ const CreateForm = () => {
                     router.push(`/dashboard/intervenants/`);
             }, 2000);
             }
-        } catch (errors: any) {
-            console.error('Error in submission:', errors); // Affichez les erreurs éventuelles
+        } catch (error) {
+            console.error('Error:', error);
+            return { error: error instanceof Error ? error.message : 'Failed to create intervenant' };
         }
     };
 
@@ -127,27 +127,6 @@ const CreateForm = () => {
                         </div>
                     </div>
 
-                    <div className="mb-4">
-                        <label htmlFor="availability" className="mb-2 block text-sm font-medium">
-                            Availability
-                        </label>
-                        <textarea
-                            id="availability"
-                            name="availability"
-                            placeholder='Enter availability as JSON, e.g. {"monday": true, "tuesday": false}'
-                            className="peer block w-full rounded-md border border-gray-200 py-2 pl-3 text-sm outline-2 placeholder:text-gray-500"
-                            aria-describedby="availability-error"
-                        />
-                        <div id="availability-error" aria-live="polite" aria-atomic="true">
-                            {errors.availability &&
-                                errors.availability.map((error: string) => (
-                                    <p className="mt-2 text-sm text-red-500" key={error}>
-                                        {error}
-                                    </p>
-                                ))}
-                        </div>
-                    </div>
-
                     <div className="mt-6 flex justify-end gap-4">
                         <Link
                             href="/dashboard/intervenants"
@@ -155,7 +134,12 @@ const CreateForm = () => {
                         >
                             Cancel
                         </Link>
-                        <Button type="submit">Create Intervenant</Button>
+                        <button
+                            type="submit"
+                            className="flex h-10 items-center rounded-lg bg-blue-500 px-4 text-sm font-medium text-white transition-colors hover:bg-blue-400"
+                        >
+                            Créer l'Intervenant
+                        </button>
                     </div>
                 </div>
             </form>
