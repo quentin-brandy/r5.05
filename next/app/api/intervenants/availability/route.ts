@@ -27,6 +27,11 @@ export async function GET() {
             formattedData[name] = intervenant.availability;
         }
 
+        // Add export_date field
+        const exportDate = new Date();
+        exportDate.setHours(exportDate.getHours() + 1);
+        formattedData.export_date = exportDate.toISOString();
+
         return new NextResponse(JSON.stringify(formattedData, null, 2), {
             headers: {
                 'Content-Type': 'application/json',
