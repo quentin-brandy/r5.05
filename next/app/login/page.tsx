@@ -9,7 +9,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const router = useRouter();
 
-  async function handleSubmit(event) {
+  async function handleSubmit(event : any) {
     event.preventDefault();
     const result = await signIn("credentials", {
       redirect: false,
@@ -17,7 +17,7 @@ export default function LoginPage() {
       password,
     });
 
-    if (!result.error) {
+    if (result && !result.error) {
       router.push("/dashboard");
     }
   }

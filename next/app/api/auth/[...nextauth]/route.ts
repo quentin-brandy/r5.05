@@ -15,20 +15,24 @@ const handler = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        if (!credentials || !credentials.email || !credentials.password) {
+          throw new Error("Invalid credentials");
+        }
+      
         const user = await prisma.users.findUnique({
           where: { email: credentials.email },
         });
-
+      
         if (!user) throw new Error("No user found with the email");
-
-        const isValid = await verifyPassword(
-          credentials.password,
-          user.password
-        );
+      
+        const isValid = await verifyPassword(credentials.password, user.password);
         if (!isValid) throw new Error("Incorrect password");
-
-        return { id: user.id, email: user.email };
-      },
+      
+        return {
+          id: String(user.id), // Convertir `id` en `string`
+          email: user.email,
+        };
+      }
     }),
   ],
   session: {
@@ -36,13 +40,13 @@ const handler = NextAuth({
   },
   callbacks: {
     async session({ session, token }) {
-      session.id = token.id;
-      session.email = token.email;
+      session.id = token.id as string;
+      session.email = token.email as string;
       return session;
     },
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id; 
+        token.id = user.id;
         token.email = user.email;
       }
       return token;

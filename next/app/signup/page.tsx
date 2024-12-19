@@ -8,7 +8,7 @@ export default function Signup() {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e : any) => {
     e.preventDefault();
 
     const res = await fetch('/api/auth/signup', {

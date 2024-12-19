@@ -3,6 +3,7 @@ FROM node:18-alpine
 # Définir le répertoire de travail
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y openssl
 # Copier uniquement les fichiers nécessaires pour l'installation
 COPY package*.json ./
 

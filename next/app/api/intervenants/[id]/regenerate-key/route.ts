@@ -1,4 +1,4 @@
-import { NextApiRequest } from "next";
+import { NextRequest } from "next/server";
 import { NextResponse } from 'next/server';
 import { PrismaClient } from "@prisma/client";
 import { v4 as uuidv4 } from 'uuid';
@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 const prisma = new PrismaClient();
 
 export async function POST(
-    req: NextApiRequest,
+    req: NextRequest,
     { params }: { params: { id: string } }
 ) {
     const id = params.id;

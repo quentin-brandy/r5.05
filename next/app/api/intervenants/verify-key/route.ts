@@ -1,21 +1,20 @@
+import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
-import { NextResponse } from 'next/server';
-
-const Prisma = new PrismaClient();
 
 export async function POST(request: Request) {
+    const prisma = new PrismaClient();
     try {
         const { key } = await request.json();
-        const intervenant = await Prisma.intervenants.findMany({
+        const intervenant = await prisma.intervenants.findMany({
             where: { key: key },
         });
 
-        if (!intervenant) {
-            return NextResponse.json({ message: "Pas d'intervenant trouvé" }, { status: 404 });
+        if (!intervenant || intervenant.length === 0) {
+            return NextResponse.json({ message: "Intervenant non trouvé" }, { status: 404 });
         }
 
         const today = new Date();
-        if (intervenant.endDate < today) {
+        if (intervenant[0].endDate < today) {
             return NextResponse.json({ message: "Le token est expiré" }, { status: 403 });
         }
 

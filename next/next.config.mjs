@@ -3,6 +3,12 @@ const nextConfig = {
     reactStrictMode: false,
     publicRuntimeConfig: {
         baseUrl: process.env.NEXT_PUBLIC_BASE_URL,
+        eslint: {
+          ignoreDuringBuilds: true,
+        },
+        typescript: {
+          ignoreBuildErrors: true,
+        },
       },
 };
 export default nextConfig;

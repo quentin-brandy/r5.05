@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 
 const prisma = new PrismaClient();
 
-export async function POST(req) {
+export async function POST(req: Request) {
   const { email, password } = await req.json();
   const hashedPassword = await hashPassword(password);
 
