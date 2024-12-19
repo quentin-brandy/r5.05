@@ -121,7 +121,7 @@ const exportIntervenantAvailability = async () => {
                                     {intervenants.map((intervenant) => (
                                         <tr key={intervenant.id} className="group">
                                             <td className="whitespace-nowrap bg-white px-4 py-5 text-sm flex items-center">
-                                                <span className={`inline-block w-2 h-2 mr-2 rounded-full ${new Date(intervenant.endDate) < new Date() ? 'bg-red-500' : 'bg-green-500'}`}></span>
+                                                <span className={`inline-block w-2 h-2 mr-2 rounded-full ${new Date(intervenant.enddate) < new Date() ? 'bg-red-500' : 'bg-green-500'}`}></span>
                                                 {intervenant.firstname}
                                             </td>
                                             <td className="whitespace-nowrap bg-white px-4 py-5 text-sm">

@@ -17,7 +17,7 @@ export async function GET() {
         for (const intervenant of intervenants) {
             const newKey = uuidv4();
             await pool.query(
-                'UPDATE "Intervenants" SET key = $1, "endDate" = $2 WHERE id = $3',
+                'UPDATE "Intervenants" SET key = $1, "enddate" = $2 WHERE id = $3',
                 [newKey, endDate, intervenant.id]
             );
         }

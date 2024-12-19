@@ -51,14 +51,21 @@ export async function PUT(
             email: 'email',
             availability: 'availability',
             workweek: 'workweek',
-            key: 'key',
+            key: 'key'
         };
 
-        // Create new data object without createdDate
-        const updateData = { ...data };
-        delete updateData.creationDate;
-        const fields = Object.keys(data).map(key => columnMapping[key] || key.toLowerCase());
-        const values = Object.values(data);
+        const fields = Object.keys(data)
+            .filter(key => key !== 'creationDate')
+            .map(key => columnMapping[key] || key);
+        const values = Object.values(data)
+            .filter((_, index) => Object.keys(data)[index] !== 'creationDate')
+            .map((value, index) => {
+                const key = Object.keys(data)[index];
+                if (key === 'availability' || key === 'workweek') {
+                    return JSON.stringify(value);
+                }
+                return value;
+            });
         const setClause = fields.map((field, index) => `${field} = $${index + 2}`).join(', ');
 
         try {

@@ -14,8 +14,8 @@ CREATE TABLE IF NOT EXISTS "Intervenants" (
     "firstname" VARCHAR(255) NOT NULL,
     "lastname" VARCHAR(255) NOT NULL,
     "key" VARCHAR(255) NOT NULL,
-    "creationDate" TIMESTAMP NOT NULL,
-    "endDate" TIMESTAMP NOT NULL,
+    "creationdate" TIMESTAMP NOT NULL,
+    "enddate" TIMESTAMP NOT NULL,
     "availability" JSONB,
     "workweek" JSONB
 );

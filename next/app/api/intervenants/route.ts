@@ -39,7 +39,7 @@ export async function POST(request: Request) {
                 endDate.setMonth(endDate.getMonth() + 2);
 
                 const result = await pool.query(
-                        `INSERT INTO "Intervenants" (email, firstname, lastname, key, availability, "endDate" , "creationDate")
+                        `INSERT INTO "Intervenants" (email, firstname, lastname, key, availability, "enddate" , "creationdate")
                          VALUES ($1, $2, $3, $4, $5, $6 , $7)
                          RETURNING *`,
                         [email, firstname, lastname, key, availability, endDate , creationDate]

@@ -19,7 +19,7 @@ export async function POST(request: Request) {
                 const intervenant = result.rows[0];
                 const today = new Date();
                 
-                if (new Date(intervenant.end_date) < today) {
+                if (new Date(intervenant.enddate) < today) {
                         return NextResponse.json({ message: "Le token est expiré" }, { status: 403 });
                 }
 

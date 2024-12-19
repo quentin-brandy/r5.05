@@ -15,8 +15,8 @@ const EditForm = () => {
         const fetchIntervenant = async () => {
             try {
                 const data = await fetchIntervenantbyId(id);
-                if (data.endDate) {
-                    data.endDate = new Date(data.endDate).toISOString().split('T')[0];
+                if (data.enddate) {
+                    data.enddate = new Date(data.enddate).toISOString().split('T')[0];
                 }
                 if (data.availability) {
                     data.availability = JSON.stringify(data.availability, null, 2);
@@ -47,8 +47,8 @@ const EditForm = () => {
         event.preventDefault();
         try {
             const data = { ...formData };
-            if (data.endDate) {
-                data.endDate = new Date(data.endDate).toISOString();
+            if (data.enddate) {
+                data.enddate = new Date(data.enddate).toISOString();
             }
             if (data.availability) {
                 try {
@@ -184,21 +184,21 @@ const EditForm = () => {
                     </div>
 
                     <div className="mb-4">
-                        <label htmlFor="endDate" className="mb-2 block text-sm font-medium">
+                        <label htmlFor="enddate" className="mb-2 block text-sm font-medium">
                             End Date
                         </label>
                         <input
-                            id="endDate"
-                            name="endDate"
+                            id="enddate"
+                            name="enddate"
                             type="date"
-                            value={formData.endDate || ''}
+                            value={formData.enddate || ''}
                             onChange={handleChange}
                             className="peer block w-full rounded-md border border-gray-200 py-2 pl-3 text-sm outline-2 placeholder:text-gray-500"
-                            aria-describedby="endDate-error"
+                            aria-describedby="enddate-error"
                         />
-                        <div id="endDate-error" aria-live="polite" aria-atomic="true">
-                            {errors.endDate &&
-                                errors.endDate.map((error: string) => (
+                        <div id="enddate-error" aria-live="polite" aria-atomic="true">
+                            {errors.enddate &&
+                                errors.enddate.map((error: string) => (
                                     <p className="mt-2 text-sm text-red-500" key={error}>
                                         {error}
                                     </p>

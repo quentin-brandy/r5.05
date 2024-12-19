@@ -25,7 +25,7 @@ export async function POST(
         const client = await pool.connect();
         
         try {
-                const query = 'UPDATE "Intervenants" SET key = $1, "endDate" = $2 WHERE id = $3 RETURNING *';
+                const query = 'UPDATE "Intervenants" SET key = $1, "enddate" = $2 WHERE id = $3 RETURNING *';
                 const values = [key, endDate, Number(id)];
                 
                 const result = await client.query(query, values);
