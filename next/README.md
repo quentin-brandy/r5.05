@@ -19,4 +19,7 @@ npx prisma migrate dev
 ```
 
 4. The development server will be running. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
+```bash
+docker compose down 
+docker compose up
+```
