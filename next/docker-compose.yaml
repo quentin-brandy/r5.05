@@ -5,11 +5,13 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    volumes:
-      - .:/app # Monte le dossier actuel dans le conteneur
-      - /app/node_modules # Évite les conflits avec node_modules de l'hôte
     environment:
-      NODE_ENV: development
+      NODE_ENV: production
+      DATABASE_URL: "postgresql://user:password@db:5432/nom_de_la_base"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
 
   db:
     image: postgres:17
@@ -17,10 +19,14 @@ services:
       POSTGRES_USER: user
       POSTGRES_PASSWORD: password
       POSTGRES_DB: nom_de_la_base
-    ports:
-      - "5432:5432" # Expose le port 5432 pour PostgreSQL
     volumes:
       - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
 volumes:
   db-data:

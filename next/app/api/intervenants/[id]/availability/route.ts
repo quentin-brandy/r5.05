@@ -48,7 +48,7 @@ export async function GET() {
         });
 
         // Formater les données comme dans data.json
-        const formattedData: { [key: string]: any } = {};
+        const formattedData: { [key: string]: string[] } = {};
 
         for (const intervenant of intervenants) {
             const name = `${intervenant.firstname} ${intervenant.lastname}`;

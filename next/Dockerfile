@@ -1,20 +1,17 @@
-# Utilisez une image Node.js comme base
-FROM node:18
+FROM node:18-alpine 
 
-# Définissez le répertoire de travail
 WORKDIR /app
 
-# Copiez les fichiers package.json et package-lock.json
 COPY package*.json ./
+RUN npm ci --only=production # Installation plus rapide et propre
 
-# Installez les dépendances
-
-
-# Copiez le reste des fichiers du projet
 COPY . .
+RUN npx prisma generate
+RUN npm run build-no-check
 
-# Exposez le port sur lequel l'application écoute
 EXPOSE 3000
 
-# Commande pour démarrer l'application
-CMD ["npm", "run", "dev"]
+COPY docker-entrypoint.sh .
+RUN chmod +x docker-entrypoint.sh
+
+CMD ["./docker-entrypoint.sh"]
