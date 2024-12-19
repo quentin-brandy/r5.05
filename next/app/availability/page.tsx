@@ -108,6 +108,7 @@ const Availability: React.FC = () => {
                             <Calendar 
         intervenantavailable={parseAvailability(intervenant?.availability || [])} 
         intervenantid={intervenant?.id} 
+        intervenantworkweek={intervenant?.workweek}
         onLastModifyChange={setLastModify}
     />
                             </div>

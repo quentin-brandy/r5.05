@@ -201,3 +201,24 @@ export async function ExportAvailability() {
         throw error;
     }
 }
+
+export async function ImportWorkWeekData(data: any) {
+    try {
+        const response = await fetch('/api/intervenants/workweek', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to import workweek data');
+        }
+
+        return response;
+    } catch (error) {
+        console.error('Error importing workweek data:', error);
+        throw error;
+    }
+}

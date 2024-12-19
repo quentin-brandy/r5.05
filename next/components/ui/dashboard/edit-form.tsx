@@ -18,6 +18,12 @@ const EditForm = () => {
                 if (data.endDate) {
                     data.endDate = new Date(data.endDate).toISOString().split('T')[0];
                 }
+                if (data.availability) {
+                    data.availability = JSON.stringify(data.availability, null, 2);
+                }
+                if (data.workweek) {
+                    data.workweek = JSON.stringify(data.workweek, null, 2);
+                }
                 setFormData(data);
             } catch (error) {
                 console.error('Error fetching intervenant:', error);
@@ -44,6 +50,34 @@ const EditForm = () => {
             if (data.endDate) {
                 data.endDate = new Date(data.endDate).toISOString();
             }
+            if (data.availability) {
+                try {
+                    data.availability = typeof data.availability === 'string' ? JSON.parse(data.availability) : data.availability;
+                } catch (error) {
+                    setErrors({ availability: ["Format JSON invalide pour la disponibilité"] });
+                    setTimeout(() => {
+                        setErrors({});
+                    }, 10000);
+                    return;
+                }
+            } else {
+                data.availability = {
+                    default: [], // Tableau vide pour les événements par défaut
+                    // Pas besoin d'initialiser d'autres semaines, elles seront créées dynamiquement
+                };
+            }
+            if(data.workweek) {
+                try {
+                    data.workweek = JSON.parse(data.workweek);
+                } catch (error) {
+                    setErrors({ workweek: ["Format JSON invalide pour la workweek"] });
+                    setTimeout(() => {
+                        setErrors({});
+                    }, 10000);
+                    return;
+                }
+            }
+           
             let updatedUser = await updateIntervenantAPI(id, data as Intervenants);
             if (updatedUser.error) {
                 setErrors({ updatefailed: ["Erreur dans la mise à jour, assurez-vous que l'email n'existe pas déjà dans la base"] });
@@ -165,6 +199,52 @@ const EditForm = () => {
                         <div id="endDate-error" aria-live="polite" aria-atomic="true">
                             {errors.endDate &&
                                 errors.endDate.map((error: string) => (
+                                    <p className="mt-2 text-sm text-red-500" key={error}>
+                                        {error}
+                                    </p>
+                                ))}
+                        </div>
+                    </div>
+
+                    <div className="mb-4">
+                        <label htmlFor="availability" className="mb-2 block text-sm font-medium">
+                            Availability
+                        </label>
+                        <textarea
+                            id="availability"
+                            name="availability"
+                            placeholder="Enter availability in JSON format"
+                            value={typeof formData.availability === 'string' ? formData.availability : JSON.stringify(formData.availability, null, 2) || ''}
+                            onChange={handleChange}
+                            className="peer block w-full rounded-md border border-gray-200 py-2 pl-3 text-sm outline-2 placeholder:text-gray-500"
+                            aria-describedby="availability-error"
+                        />
+                        <div id="availability-error" aria-live="polite" aria-atomic="true">
+                            {errors.availability &&
+                                errors.availability.map((error: string) => (
+                                    <p className="mt-2 text-sm text-red-500" key={error}>
+                                        {error}
+                                    </p>
+                                ))}
+                        </div>
+                    </div>
+
+                    <div className="mb-4">
+                        <label htmlFor="workweek" className="mb-2 block text-sm font-medium">
+                            Workweek
+                        </label>
+                        <textarea
+                            id="workweek"
+                            name="workweek"
+                            placeholder="Enter workweek in JSON format"
+                            value={typeof formData.workweek === 'string' ? formData.workweek : JSON.stringify(formData.workweek, null, 2) || ''}
+                            onChange={handleChange}
+                            className="peer block w-full rounded-md border border-gray-200 py-2 pl-3 text-sm outline-2 placeholder:text-gray-500"
+                            aria-describedby="workweek-error"
+                        />
+                        <div id="workweek-error" aria-live="polite" aria-atomic="true">
+                            {errors.workweek &&
+                                errors.workweek.map((error: string) => (
                                     <p className="mt-2 text-sm text-red-500" key={error}>
                                         {error}
                                     </p>

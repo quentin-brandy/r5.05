@@ -29,5 +29,6 @@ model Intervenants {
   key          String                               // Clé spécifique pour l'intervenant
   creationDate DateTime @default(now())             // Date de création
   endDate      DateTime?                            // Date de fin (nullable)
-  availability Json?                             // Disponibilités au format JSON ou chaîne de caractères (nullable)
+  availability Json?  
+  workweek     Json?                           // Disponibilités au format JSON ou chaîne de caractères (nullable)
 }

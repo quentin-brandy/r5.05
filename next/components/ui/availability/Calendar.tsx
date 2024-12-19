@@ -11,9 +11,10 @@ interface CalendarProps {
     intervenantavailable: IntervenantAvailability & { lastModify?: string };
     intervenantid?: string;
     onLastModifyChange?: (date: string) => void;
+    intervenantworkweek?: string;
 }
 
-export default function Calendar({ intervenantavailable, intervenantid , onLastModifyChange }: CalendarProps) {
+export default function Calendar({ intervenantavailable, intervenantid ,  intervenantworkweek , onLastModifyChange }: CalendarProps) {
     const calendarRef = useRef<any>(null);
     const firstCalendarRef = useRef<any>(null);
     const [defaultEvents, setDefaultEvents] = useState<any[]>([]);
@@ -25,6 +26,7 @@ export default function Calendar({ intervenantavailable, intervenantid , onLastM
     const [editFrom, setEditFrom] = useState('');
     const [editTo, setEditTo] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [months, setMonths] = useState<Date[]>([]);
 
 
@@ -499,10 +501,63 @@ export default function Calendar({ intervenantavailable, intervenantid , onLastM
         }
     };
 
+
+    const getFormattedWorkWeek = () => {
+        if (!intervenantworkweek) return [];
+        try {
+            return typeof intervenantworkweek === 'string' ? JSON.parse(intervenantworkweek) : intervenantworkweek;
+        } catch (error) {
+            console.error('Error parsing workweek:', error);
+            return [];
+        }
+    };
+
+    const handleWeekClick = (weekNum: number) => {
+        const currentDate = new Date();
+        const currentWeek = getWeekNumber(currentDate);
+        const date = new Date();
+        
+        if (weekNum < currentWeek) {
+            // Si la semaine est antérieure, passer à l'année suivante
+            date.setFullYear(date.getFullYear() + 1);
+        }
+        
+        date.setDate(date.getDate() + ((weekNum - getWeekNumber(date)) * 7));
+        const selectInfo = { start: date };
+        handleDateSelect(selectInfo);
+    };
+
     return (
-        <div className="flex h-full px-10 space-x-8 mb-10">
-        {/* Monthly View Section - Left Side avec scroll */}
-        <div className="w-1/4 overflow-y-auto" style={{ maxHeight: 'calc(200vh )' }}>
+<div className="flex flex-col lg:flex-row h-full px-4 lg:px-10 space-y-4 lg:space-y-0 lg:space-x-8 mb-10">
+        {/* Bouton toggle */}
+        <button 
+            className="lg:hidden w-full py-2 bg-blue-500 text-white rounded-lg mb-2"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        >
+            {isSidebarOpen ? 'Masquer le menu latéral' : 'Afficher le menu latéral'}
+        </button>
+
+        <div className={`
+            w-full lg:w-1/4 
+            ${isSidebarOpen ? 'block' : 'hidden'} lg:block
+            overflow-x-auto lg:overflow-y-auto lg:overflow-x-hidden
+        `} 
+        style={{ maxHeight: isSidebarOpen ? '50vh' : 'calc(200vh - 120px)' }}>
+            <div className="min-w-full inline-block">
+                {/* Section des heures requises */}
+                <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+                    <h3 className="font-medium mb-2">Heures requises par semaine:</h3>
+                    <div className="space-y-1">
+                    {getFormattedWorkWeek().map((week: any) => (
+                       <div key={week.week} 
+                       className="flex justify-between items-center p-2 hover:bg-blue-100 rounded cursor-pointer"
+                       onClick={() => handleWeekClick(week.week)}>
+                      <span>Semaine {week.week}:</span>
+                      <span className="font-medium">{week.hours}h</span>
+                  </div>
+                    ))}
+                </div>
+            </div>
             <div className="space-y-4">
                 {months.map((month, index) => (
                     <div key={index} className="border p-4">
@@ -541,6 +596,7 @@ export default function Calendar({ intervenantavailable, intervenantid , onLastM
     </div>
 ))}
 </div>
+            </div>
             </div>
     
             {/* Main Calendars Section - Right Side */}

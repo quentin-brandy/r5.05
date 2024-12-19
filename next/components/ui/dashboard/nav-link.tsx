@@ -13,6 +13,7 @@ const links = [
    
   },
   { name: 'Disponibilités', href: '/dashboard/availability',  },
+  { name: 'Importation', href: '/dashboard/importworkweek',  },
 ];
 
 export default function NavLinks() {

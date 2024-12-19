@@ -25,6 +25,7 @@ export type Intervenants = {
     creationdate: string;
     endDate: string;
     availability: string | IntervenantAvailability; // Peut être une chaîne JSON ou l'objet
+    workweek: string; // Peut être une chaîne JSON
 };
 
 export type IntervenantCreation = {

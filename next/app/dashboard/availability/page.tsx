@@ -92,6 +92,7 @@ const AdminAvailability: React.FC = () => {
     intervenantavailable={selectedIntervenant.availability ? parseAvailability(selectedIntervenant.availability) : { default: [] }} 
     intervenantid={selectedIntervenant.id} 
     onLastModifyChange={setLastModify}
+    intervenantworkweek={selectedIntervenant.workweek}
 />
                                     </div>
                                 </>
