@@ -1,31 +1,25 @@
 FROM node:18-alpine 
 
-# Définir le répertoire de travail
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y openssl
-# Copier uniquement les fichiers nécessaires pour l'installation
-COPY package*.json ./
+RUN apk add --no-cache openssl netcat-openbsd
 
-# Installer uniquement les dépendances de production
+COPY package*.json ./
 RUN npm ci --only=production
 
-# Copier le reste du projet
 COPY . .
-
-# Générer le client Prisma
 RUN npx prisma generate
 
-# Construire l'application (désactive ESLint et TypeScript)
-ENV SKIP_TYPE_CHECK=true
-RUN npm run build-no-check
-
-# Exposer le port pour l'application
 EXPOSE 3000
 
-# Ajouter le script d'entrée
+# Option 1: Script dans le répertoire de travail
 COPY docker-entrypoint.sh .
 RUN chmod +x docker-entrypoint.sh
+ENTRYPOINT ["./docker-entrypoint.sh"]
 
-# Commande de démarrage
-CMD ["./docker-entrypoint.sh"]
+# OU Option 2: Script dans /docker-entrypoint.d/
+# COPY docker-entrypoint.sh /docker-entrypoint.d/
+# RUN chmod +x /docker-entrypoint.d/docker-entrypoint.sh
+# ENTRYPOINT ["/docker-entrypoint.d/docker-entrypoint.sh"]
+
+CMD ["npm", "start"]
