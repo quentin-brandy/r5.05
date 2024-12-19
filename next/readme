@@ -1,0 +1,31 @@
+# Configuration du Projet
+
+Suivez ces étapes pour configurer le projet :
+
+1. Changez de répertoire pour `next` :
+    ```sh
+    cd next
+    ```
+
+2. Installez les paquets npm nécessaires :
+    ```sh
+    sudo npm install
+    sudo npm i --save-dev @types/pg
+    ```
+
+3. Mettez à jour le fichier `.env` :
+    - Remplacez les URLs pour `NEXTAUTH_URL` et `NEXT_PUBLIC_BASE_URL` par l'URL de votre codespace.
+
+4. Construisez et démarrez les conteneurs Docker :
+    ```sh
+    docker compose up --build
+    ```
+
+## Configuration du Compte Admin
+
+Pour créer un compte admin :
+
+1. Naviguez vers `/signup` dans votre navigateur.
+2. Suivez les instructions pour créer un nouveau compte admin.
+3. retourner sur la page principal ou /login ou /dashboard
+4. un fichier workweek.json est présent dans le répo pour les tests ainsi que data.json
