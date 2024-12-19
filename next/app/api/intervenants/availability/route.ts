@@ -1,30 +1,23 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { Pool } from 'pg';
 
-const prisma = new PrismaClient();
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL
+});
 
 export async function GET() {
     try {
-        const intervenants = await prisma.intervenants.findMany({
-            select: {
-                firstname: true,
-                lastname: true,
-                availability: true
-            }
-        });
-
+        const query = `
+            SELECT firstname, lastname, availability
+            FROM "Intervenants"
+        `;
+        
+        const { rows } = await pool.query(query);
         const formattedData: { [key: string]: any } = {};
 
-        for (const intervenant of intervenants) {
-            const name = `${intervenant.firstname} ${intervenant.lastname}`;
-            
-            if (!intervenant.availability) {
-                formattedData[name] = [];
-                continue;
-            }
-
-            // Utiliser directement la disponibilité sans parser
-            formattedData[name] = intervenant.availability;
+        for (const row of rows) {
+            const name = `${row.firstname} ${row.lastname}`;
+            formattedData[name] = row.availability || [];
         }
 
         // Add export_date field
@@ -45,5 +38,8 @@ export async function GET() {
             { error: 'Failed to export intervenants availability' },
             { status: 500 }
         );
+    } finally {
+        // Optionnel: si vous voulez libérer le pool après chaque requête
+         await pool.end();
     }
 }

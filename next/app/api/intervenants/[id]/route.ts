@@ -1,59 +1,78 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from "@prisma/client";
+import { Pool } from 'pg';
 
-const prisma = new PrismaClient();
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL
+});
 
 export async function GET(
-    req: Request,
-    { params }: { params: { id: string } }
+        req: Request,
+        { params }: { params: { id: string } }
 ) {
+        const id = params.id;
+        console.log(id);
 
-    const id = params.id;
-    console.log(id);
-
-    if (!id) {
-        return NextResponse.json({ error: "ID is required" }, { status: 400 });
-    }
-
-    try {
-        const intervenant = await prisma.intervenants.findUnique({
-            where: { id: Number(id) },
-        });
-
-        if (!intervenant) {
-            return NextResponse.json({ error: "Intervenant not found" }, { status: 404 });
+        if (!id) {
+                return NextResponse.json({ error: "ID is required" }, { status: 400 });
         }
 
-        return NextResponse.json(intervenant, { status: 200 });
-    } catch (error) {
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-    } finally {
-        await prisma.$disconnect();
-    }
+        try {
+                const result = await pool.query(
+                        'SELECT * FROM "Intervenants" WHERE id = $1',
+                        [Number(id)]
+                );
+
+                if (result.rows.length === 0) {
+                        return NextResponse.json({ error: "Intervenant not found" }, { status: 404 });
+                }
+
+                return NextResponse.json(result.rows[0], { status: 200 });
+        } catch (error) {
+                return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+        }
 }
 
 export async function PUT(
-    request: Request,
-    { params }: { params: { id: string } }
+        request: Request,
+        { params }: { params: { id: string } }
 ) {
-    const id = params.id;
+        const id = params.id;
 
-    if (!id) {
-        return NextResponse.json({ error: "ID is required" }, { status: 400 });
-    }
+        if (!id) {
+                return NextResponse.json({ error: "ID is required" }, { status: 400 });
+        }
 
-    const data = await request.json();
+        const data = await request.json();
+        // Map to correct column names
+        const columnMapping: { [key: string]: string } = {
+            endDate: 'endDate',
+            firstName: 'firstname',
+            lastName: 'lastname',
+            email: 'email',
+            availability: 'availability',
+            workweek: 'workweek',
+            key: 'key',
+        };
 
-    try {
-        const updatedIntervenant = await prisma.intervenants.update({
-            where: { id: Number(id) },
-            data: data,
-        });
+        // Create new data object without createdDate
+        const updateData = { ...data };
+        delete updateData.creationDate;
+        const fields = Object.keys(data).map(key => columnMapping[key] || key.toLowerCase());
+        const values = Object.values(data);
+        const setClause = fields.map((field, index) => `${field} = $${index + 2}`).join(', ');
 
-        return NextResponse.json(updatedIntervenant, { status: 200 });
-    } catch (error) {
-        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
-    } finally {
-        await prisma.$disconnect();
-    }
+        try {
+            const result = await pool.query(
+                `UPDATE "Intervenants" SET ${setClause} WHERE id = $1 RETURNING *`,
+                [Number(id), ...values]
+            );
+
+                if (result.rows.length === 0) {
+                        return NextResponse.json({ error: "Intervenant not found" }, { status: 404 });
+                }
+
+                return NextResponse.json(result.rows[0], { status: 200 });
+        } catch (error) {
+                return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+        }
 }

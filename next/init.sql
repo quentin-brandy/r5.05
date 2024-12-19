@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS "Intervenants" (
     "firstname" VARCHAR(255) NOT NULL,
     "lastname" VARCHAR(255) NOT NULL,
     "key" VARCHAR(255) NOT NULL,
-    "creationDate" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "creationDate" TIMESTAMP NOT NULL,
     "endDate" TIMESTAMP NOT NULL,
     "availability" JSONB,
     "workweek" JSONB
@@ -23,8 +23,3 @@ CREATE TABLE IF NOT EXISTS "Intervenants" (
 -- Insert sample data
 INSERT INTO "Users" ("email", "password", "name") VALUES 
 ('admin@example.com', 'admin123', 'Admin User');
-
-INSERT INTO "Intervenants" ("email", "firstname", "lastname", "key", "endDate", "availability", "workweek") VALUES 
-('intervenant@example.com', 'John', 'Doe', 'key123', '2024-12-31 23:59:59',
-'{"monday": true, "tuesday": true}',
-'{"hours": ["9-17", "10-18"]}');

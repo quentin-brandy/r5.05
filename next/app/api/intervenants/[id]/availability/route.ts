@@ -1,32 +1,39 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { Pool } from 'pg';
 
-const prisma = new PrismaClient();
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL
+});
 
 export async function POST(
     request: Request,
     { params }: { params: { id: string } }
 ) {
-        const id = params.id;
-        console.log(id);
-    
-        if (!id) {
-            return NextResponse.json({ error: "ID is required" }, { status: 400 });
-        }
+    const id = params.id;
+    console.log(id);
+
+    if (!id) {
+        return NextResponse.json({ error: "ID is required" }, { status: 400 });
+    }
     try {
         const { availability } = await request.json();
         if (!availability) {
             return NextResponse.json({ error: "Availability data is required" }, { status: 400 });
         }
 
-        const updatedIntervenant = await prisma.intervenants.update({
-            where: { id: Number(id) },
-            data: { availability },
-        });
-        if (!updatedIntervenant) {
+        const result = await pool.query(
+            'UPDATE "Intervenants" SET availability = $1 WHERE id = $2 RETURNING *',
+            [availability, Number(id)]
+        );
+
+        if (result.rowCount === 0) {
             return NextResponse.json({ error: "Intervenant not found" }, { status: 404 });
         }
-        return NextResponse.json({ message: 'Availability updated successfully', updatedIntervenant });
+
+        return NextResponse.json({ 
+            message: 'Availability updated successfully', 
+            updatedIntervenant: result.rows[0] 
+        });
     } catch (error) {
         console.error('Server error:', error);
         return NextResponse.json({ 
@@ -37,29 +44,23 @@ export async function POST(
 
 export async function GET() {
     try {
-        // Récupérer tous les intervenants avec leurs disponibilités
-        const intervenants = await prisma.intervenants.findMany({
-            select: {
-                id: true,
-                firstname: true,
-                lastname: true,
-                availability: true
-            }
-        });
+        const result = await pool.query(`
+            SELECT id, firstname, lastname, availability 
+            FROM "Intervenants"
+        `);
 
-        // Formater les données comme dans data.json
         const formattedData: { [key: string]: string[] } = {};
 
-        for (const intervenant of intervenants) {
-            const name = `${intervenant.firstname} ${intervenant.lastname}`;
+        for (const row of result.rows) {
+            const name = `${row.firstname} ${row.lastname}`;
             
-            if (!intervenant.availability) {
+            if (!row.availability) {
                 formattedData[name] = [];
                 continue;
             }
 
             try {
-                const availability = JSON.parse(intervenant.availability as string);
+                const availability = JSON.parse(row.availability);
                 formattedData[name] = availability;
             } catch (error) {
                 console.error(`Error parsing availability for ${name}:`, error);

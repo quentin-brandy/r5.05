@@ -1,30 +1,35 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { Pool } from 'pg';
 
-const prisma = new PrismaClient();
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL
+});
 
 export async function POST(request: Request) {
     try {
         const requestBody = await request.json();
         const results = [];
+        const client = await pool.connect();
 
-        for (const item of requestBody) {
-            const { intervenant, workweek } = item;
+        try {
+            for (const item of requestBody) {
+                const { intervenant, workweek } = item;
 
-            const updatedIntervenant = await prisma.intervenants.updateMany({
-                where: {
-                    email: intervenant
-                },
-                data: {
-                    workweek: workweek
+                const query = {
+                    text: 'UPDATE "Intervenants" SET workweek = $1::json WHERE email = $2',
+                    values: [JSON.stringify(workweek), intervenant]
+                };
+
+                const result = await client.query(query);
+
+                if (result.rowCount === 0) {
+                    results.push({ intervenant, status: 404 });
+                } else {
+                    results.push({ intervenant, status: 200 });
                 }
-            });
-
-            if (updatedIntervenant.count === 0) {
-                results.push({ intervenant, status: 404 });
-            } else {
-                results.push({ intervenant, status: 200 });
             }
+        } finally {
+            client.release();
         }
 
         const errors = results.filter(result => result.status === 404);

@@ -1,10 +1,14 @@
-// app/api/auth/[...nextauth]/route.js
+// app/api/auth/[...nextauth]/route.ts
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaClient } from "@prisma/client";
+import { Pool } from 'pg';
 import { verifyPassword } from "@/lib/auth";
 
-const prisma = new PrismaClient();
+const pool = new Pool({
+  // Ajoutez votre configuration de connexion PostgreSQL ici
+  connectionString: process.env.DATABASE_URL,
+  // ssl: { rejectUnauthorized: false } // Décommentez si nécessaire pour Heroku
+});
 
 const handler = NextAuth({
   providers: [
@@ -18,20 +22,27 @@ const handler = NextAuth({
         if (!credentials || !credentials.email || !credentials.password) {
           throw new Error("Invalid credentials");
         }
-      
-        const user = await prisma.users.findUnique({
-          where: { email: credentials.email },
-        });
-      
-        if (!user) throw new Error("No user found with the email");
-      
-        const isValid = await verifyPassword(credentials.password, user.password);
-        if (!isValid) throw new Error("Incorrect password");
-      
-        return {
-          id: String(user.id), // Convertir `id` en `string`
-          email: user.email,
-        };
+
+        try {
+          const result = await pool.query(
+            'SELECT * FROM "Users" WHERE email = $1',
+            [credentials.email]
+          );
+
+          const user = result.rows[0];
+          if (!user) throw new Error("No user found with the email");
+
+          const isValid = await verifyPassword(credentials.password, user.password);
+          if (!isValid) throw new Error("Incorrect password");
+
+          return {
+            id: String(user.id),
+            email: user.email,
+          };
+        } catch (error) {
+          console.error('Database error:', error);
+          throw new Error("Authentication failed");
+        }
       }
     }),
   ],
