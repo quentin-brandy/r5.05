@@ -74,7 +74,7 @@ const Availability: React.FC = () => {
 )}
                             </div>
                             
-                            <button
+                            {/* <button
                                 onClick={() => setIsDialogOpen(true)}
                                 className="text-blue-600 hover:text-blue-800 underline flex items-center gap-2"
                             >
@@ -82,7 +82,7 @@ const Availability: React.FC = () => {
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M12 21a9 9 0 100-18 9 9 0 000 18z" />
                                 </svg>
-                            </button>
+                            </button> */}
 
                             {isDialogOpen && (
                                 <div className=" z-10 fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
