@@ -1,6 +1,0 @@
-cd next
-docker compose up --build
-dans container app 
-npx prisma generate
-npx prisma migrate dev
-
